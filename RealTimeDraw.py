@@ -4,5 +4,7 @@ pygameWindow = PYGAME_WINDOW()
 
 while True:
     pygameWindow.Prepare()
-    pass
+
+    pygameWindow.Draw_Black_Circle(200,200)
+
     pygameWindow.Reveal()

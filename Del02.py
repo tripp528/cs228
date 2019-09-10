@@ -10,22 +10,10 @@ pygameWindow = PYGAME_WINDOW()
 controller = Leap.Controller()
 x = 400
 y = 400
-xMin = 1000
-xMax = -1000
-yMin = 1000
-yMax = -1000
-
-def Perturb_Circle_Position():
-    global x, y
-    fourSidedDieRoll = random.randint(1,4)
-    if fourSidedDieRoll == 1:
-        x -= 1
-    elif fourSidedDieRoll == 2:
-        x += 1
-    elif fourSidedDieRoll ==  3:
-        y -= 1
-    else:
-        y += 1
+xMin = 800
+xMax = -800
+yMin = 800
+yMax = -800
 
 def scaleValue(val, min, max, windowMin, windowMax):
     if (max - min != 0):
@@ -41,20 +29,12 @@ def scaleValue(val, min, max, windowMin, windowMax):
     else:
         return val
 
+def Handle_Vector_From_Leap(v):
 
-def Handle_Frame(frame):
-    global x, y
-    hand = frame.hands[0]
-    fingers = hand.fingers
-    indexFingerList = fingers.finger_type(Leap.Finger.TYPE_INDEX)
-    indexFinger = indexFingerList[0]
-    distalPhalanx = indexFinger.bone(Leap.Bone.TYPE_DISTAL)
-    tip = distalPhalanx.next_joint
-    print(tip)
-    xVal = int(tip[0])
-    yVal = int(tip[1])
+    xVal = float(v[0])
+    yVal = float(v[2])
 
-    #handle bounds of screen
+    # dynamically scale screen
     global xMin,xMax,yMin,yMax
     if ( xVal < xMin ):
         xMin = xVal
@@ -64,22 +44,38 @@ def Handle_Frame(frame):
         yMin = yVal
     if ( yVal > yMax ):
         yMax = yVal
-    print(xMin,xMax,yMin,yMax)
 
-    x = scaleValue(xVal, xMin, xMax, 0, constants.pygameWindowWidth)
-    y = constants.pygameWindowDepth - scaleValue(yVal, yMin, yMax, 0, constants.pygameWindowDepth)
+    xVal = scaleValue(xVal, xMin, xMax, 0, constants.pygameWindowWidth)
+    yVal = scaleValue(yVal, yMin, yMax, 0, constants.pygameWindowDepth)
+    return xVal, yVal
 
-    print("ScaledX: ", x, "scaledY: ", y)
+def Handle_Bone(bone, thickness):
+    global xMin,xMax,yMin,yMax
+    base = bone.prev_joint
+    base_xVal, base_yVal = Handle_Vector_From_Leap(base)
+    tip = bone.next_joint
+    tip_xVal, tip_yVal = Handle_Vector_From_Leap(tip)
+    pygameWindow.Draw_Black_Line(base_xVal,base_yVal,tip_xVal,tip_yVal, thickness)
+
+def Handle_Finger(finger):
+    for b in range(0,4):
+        bone = finger.bone(b)
+        Handle_Bone(bone, 8 - b * 2)
+
+
+def Handle_Frame(frame):
+    global x, y
+    hand = frame.hands[0]
+    fingers = hand.fingers
+    for finger in fingers:
+        Handle_Finger(finger)
 
 while True:
     pygameWindow.Prepare()
 
-    # Perturb_Circle_Position()
     frame = controller.frame()
     if (len(frame.hands) > 0):
         Handle_Frame(frame)
-        pygameWindow.Draw_Black_Circle(x,y)
-
     else:
         print("no hand")
 

@@ -21,7 +21,7 @@ class DELIVERABLE:
             fullWidth = max - min
             distanceFromMin = val - min
             distanceFromMinPercent = float(distanceFromMin) / float(fullWidth)
-            print("distanceFromMinPercent: ", distanceFromMinPercent)
+            # print("distanceFromMinPercent: ", distanceFromMinPercent)
 
             windowWidth = windowMax - windowMin
             distanceFromWindowMin = distanceFromMinPercent * windowWidth
@@ -56,7 +56,10 @@ class DELIVERABLE:
         base_xVal, base_yVal = self.Handle_Vector_From_Leap(base)
         tip = bone.next_joint
         tip_xVal, tip_yVal = self.Handle_Vector_From_Leap(tip)
-        self.pygameWindow.Draw_Black_Line(base_xVal,base_yVal,tip_xVal,tip_yVal, thickness)
+        if (self.numberOfHands == 1):
+            self.pygameWindow.Draw_Line(base_xVal,base_yVal,tip_xVal,tip_yVal, thickness, (0,222,0))
+        elif (self.numberOfHands == 2):
+            self.pygameWindow.Draw_Line(base_xVal,base_yVal,tip_xVal,tip_yVal, thickness, (222,0,0))
 
     def Handle_Finger(self,finger):
         for b in range(0,4):
@@ -71,15 +74,19 @@ class DELIVERABLE:
         for finger in fingers:
             self.Handle_Finger(finger)
 
+    def Run_Once(self):
+        self.pygameWindow.Prepare()
+
+        frame = self.controller.frame()
+        self.numberOfHands = len(frame.hands)
+        if (self.numberOfHands > 0):
+            self.Handle_Frame(frame)
+        else:
+            print("no hand")
+
+
+        self.pygameWindow.Reveal()
+
     def Run_Forever(self):
         while True:
-            self.pygameWindow.Prepare()
-
-            frame = self.controller.frame()
-            if (len(frame.hands) > 0):
-                self.Handle_Frame(frame)
-            else:
-                print("no hand")
-
-
-            self.pygameWindow.Reveal()
+            self.Run_Once()

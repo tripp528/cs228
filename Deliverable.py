@@ -3,6 +3,7 @@ sys.path.insert(0, "..")
 import Leap
 import constants
 import numpy as np
+import pickle
 
 class DELIVERABLE:
 
@@ -19,6 +20,11 @@ class DELIVERABLE:
         self.currentNumberOfHands = 0
         self.gestureData = np.zeros((5,4,6),dtype='f')
 
+    def Save_Gesture(self):
+        pickle_out = open("userData/gesture.p","wb")
+        pickle.dump(self.gestureData, pickle_out)
+        pickle_out.close()
+
     def Recording_Is_Ending(self):
         if (self.currentNumberOfHands == 1 and self.previousNumberOfHands == 2):
             return True
@@ -30,7 +36,6 @@ class DELIVERABLE:
             fullWidth = max - min
             distanceFromMin = val - min
             distanceFromMinPercent = float(distanceFromMin) / float(fullWidth)
-            # print("distanceFromMinPercent: ", distanceFromMinPercent)
 
             windowWidth = windowMax - windowMin
             distanceFromWindowMin = distanceFromMinPercent * windowWidth
@@ -74,12 +79,13 @@ class DELIVERABLE:
         self.pygameWindow.Draw_Line(base_xVal,base_yVal,tip_xVal,tip_yVal, thickness, lineColor)
 
         #store data
-        self.gestureData[fingerIndex,boneIndex,0] = base[0]
-        self.gestureData[fingerIndex,boneIndex,1] = base[1]
-        self.gestureData[fingerIndex,boneIndex,2] = base[2]
-        self.gestureData[fingerIndex,boneIndex,3] = tip[0]
-        self.gestureData[fingerIndex,boneIndex,4] = tip[1]
-        self.gestureData[fingerIndex,boneIndex,5] = tip[2]
+        if self.Recording_Is_Ending():
+            self.gestureData[fingerIndex,boneIndex,0] = base[0]
+            self.gestureData[fingerIndex,boneIndex,1] = base[1]
+            self.gestureData[fingerIndex,boneIndex,2] = base[2]
+            self.gestureData[fingerIndex,boneIndex,3] = tip[0]
+            self.gestureData[fingerIndex,boneIndex,4] = tip[1]
+            self.gestureData[fingerIndex,boneIndex,5] = tip[2]
 
     def Handle_Finger(self,finger,fingerIndex):
         for boneIndex in range(0,4):
@@ -94,7 +100,9 @@ class DELIVERABLE:
             finger = fingers[fingerIndex]
             self.Handle_Finger(finger,fingerIndex)
         if self.Recording_Is_Ending():
-            print(self.gestureData[0,3,3:6])
+            print(self.gestureData)
+            self.Save_Gesture()
+
 
     def Run_Once(self):
         self.pygameWindow.Prepare()
@@ -103,8 +111,6 @@ class DELIVERABLE:
 
         if (self.currentNumberOfHands > 0):
             self.Handle_Frame(frame)
-        else:
-            print("no hand")
 
         self.previousNumberOfHands = self.currentNumberOfHands
         self.pygameWindow.Reveal()

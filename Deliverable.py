@@ -19,11 +19,13 @@ class DELIVERABLE:
         self.previousNumberOfHands = 0
         self.currentNumberOfHands = 0
         self.gestureData = np.zeros((5,4,6),dtype='f')
+        self.gestureNumber = 0
 
     def Save_Gesture(self):
-        pickle_out = open("userData/gesture.p","wb")
+        pickle_out = open("userData/gesture"+str(self.gestureNumber)+".p","wb")
         pickle.dump(self.gestureData, pickle_out)
         pickle_out.close()
+        self.gestureNumber += 1
 
     def Recording_Is_Ending(self):
         if (self.currentNumberOfHands == 1 and self.previousNumberOfHands == 2):

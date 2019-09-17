@@ -4,6 +4,8 @@ import Leap
 import constants
 import numpy as np
 import pickle
+import os
+import shutil
 
 class DELIVERABLE:
 
@@ -20,6 +22,11 @@ class DELIVERABLE:
         self.currentNumberOfHands = 0
         self.gestureData = np.zeros((5,4,6),dtype='f')
         self.gestureNumber = 0
+        self.clearGestureFolder()
+
+    def clearGestureFolder(self):
+        shutil.rmtree("userData/")
+        os.mkdir("userData/")
 
     def Save_Gesture(self):
         pickle_out = open("userData/gesture"+str(self.gestureNumber)+".p","wb")

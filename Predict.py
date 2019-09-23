@@ -9,9 +9,9 @@ knn.Load_Dataset('iris.csv')
 x = knn.data[:,0]
 y = knn.data[:,1]
 # slice dataset
-trainX = knn.data[::2,0:2]
+trainX = knn.data[::2,1:3]
 trainY = knn.target[::2]
-testX = knn.data[1::2,0:2]
+testX = knn.data[1::2,1:3]
 testY = knn.target[1::2]
 
 # train
@@ -22,7 +22,7 @@ knn.Fit(trainX,trainY)
 wrongCount = 0
 for i in range(len(testY)):
     actualClass = testY[i]
-    prediction = knn.Predict(testX[i,0:2])
+    prediction = knn.Predict(testX[i,:])
     print(actualClass, prediction)
     if actualClass != prediction:
         wrongCount += 1

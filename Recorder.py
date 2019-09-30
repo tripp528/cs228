@@ -20,8 +20,9 @@ class RECORDER:
         self.yMax = yMax
         self.previousNumberOfHands = 0
         self.currentNumberOfHands = 0
-        self.gestureData = np.zeros((5,4,6),dtype='f')
-        self.gestureNumber = 0
+        self.numberOfGestures = 1000
+        self.gestureIndex = 0
+        self.gestureData = np.zeros((5,4,6,self.numberOfGestures),dtype='f')
         self.clearGestureFolder()
 
     def clearGestureFolder(self):
@@ -29,10 +30,9 @@ class RECORDER:
         os.mkdir("userData/")
 
     def Save_Gesture(self):
-        pickle_out = open("userData/gesture"+str(self.gestureNumber)+".p","wb")
+        pickle_out = open("userData/gesture.p","wb")
         pickle.dump(self.gestureData, pickle_out)
         pickle_out.close()
-        self.gestureNumber += 1
 
     def Recording_Is_Ending(self):
         if (self.currentNumberOfHands == 1 and self.previousNumberOfHands == 2):
@@ -88,13 +88,13 @@ class RECORDER:
         self.pygameWindow.Draw_Line(base_xVal,base_yVal,tip_xVal,tip_yVal, thickness, lineColor)
 
         #store data
-        if self.Recording_Is_Ending():
-            self.gestureData[fingerIndex,boneIndex,0] = base[0]
-            self.gestureData[fingerIndex,boneIndex,1] = base[1]
-            self.gestureData[fingerIndex,boneIndex,2] = base[2]
-            self.gestureData[fingerIndex,boneIndex,3] = tip[0]
-            self.gestureData[fingerIndex,boneIndex,4] = tip[1]
-            self.gestureData[fingerIndex,boneIndex,5] = tip[2]
+        if self.currentNumberOfHands  == 2:
+            self.gestureData[fingerIndex,boneIndex,0,self.gestureIndex] = base[0]
+            self.gestureData[fingerIndex,boneIndex,1,self.gestureIndex] = base[1]
+            self.gestureData[fingerIndex,boneIndex,2,self.gestureIndex] = base[2]
+            self.gestureData[fingerIndex,boneIndex,3,self.gestureIndex] = tip[0]
+            self.gestureData[fingerIndex,boneIndex,4,self.gestureIndex] = tip[1]
+            self.gestureData[fingerIndex,boneIndex,5,self.gestureIndex] = tip[2]
 
     def Handle_Finger(self,finger,fingerIndex):
         for boneIndex in range(0,4):
@@ -108,9 +108,15 @@ class RECORDER:
         for fingerIndex in range(len(fingers)):
             finger = fingers[fingerIndex]
             self.Handle_Finger(finger,fingerIndex)
-        if self.Recording_Is_Ending():
-            print(self.gestureData)
-            self.Save_Gesture()
+        if self.currentNumberOfHands == 2:
+            print('gesture' + str(self.gestureIndex) + ' stored.')
+            self.gestureIndex += 1
+            if self.gestureIndex == self.numberOfGestures:
+                self.Save_Gesture()
+                exit(0)
+        # if self.Recording_Is_Ending():
+        #     print(self.gestureData)
+        #     self.Save_Gesture()
 
 
     def Run_Once(self):

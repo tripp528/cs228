@@ -21,7 +21,7 @@ class READER:
 
     def Print_Gestures(self):
         for gestureNumber in range(self.numGestures):
-            pickle_in = open("userData/gesture" + str(gestureNumber) + ".p","rb")
+            pickle_in = open("userData/train2.p","rb")
             gestureData = pickle.load(pickle_in)
             pickle_in.close()
             print(gestureData)
@@ -39,16 +39,12 @@ class READER:
         else:
             return val
 
-    def Draw_Gesture(self, gestureNumber):
+    def Draw_Gesture(self, gesture):
         self.pygameWindow.Prepare()
-
-        pickle_in = open("userData/gesture" + str(gestureNumber) + ".p","rb")
-        gestureData = pickle.load(pickle_in)
-        pickle_in.close()
         #draw it
         for fingerIndex in range(5):
             for boneIndex in range(4):
-                currentBone = gestureData[fingerIndex,boneIndex,:]
+                currentBone = gesture[fingerIndex,boneIndex,:]
                 xBaseNotYetScaled = currentBone[0]
                 yBaseNotYetScaled = currentBone[2] # ACTUALLY Z
                 xTipNotYetScaled = currentBone[3]
@@ -60,11 +56,20 @@ class READER:
 
                 self.pygameWindow.Draw_Line(base_xVal,base_yVal,tip_xVal,tip_yVal, 4, (0,0,222))
         self.pygameWindow.Reveal()
-        time.sleep(0.3)
+        # time.sleep(0.001)
 
-    def Draw_Each_Gesture_Once(self):
-        for gestureNumber in range(self.numGestures):
-            self.Draw_Gesture(gestureNumber)
+    def Draw_Each_Gesture_Once(self,filename):
+
+        pickle_in = open(filename,"rb")
+        self.gestureData = pickle.load(pickle_in)
+        pickle_in.close()
+
+        print(self.gestureData.shape[3])
+        for gestureNumber in range(100):
+            # if(gestureNumber % 10 == 0):
+            print(gestureNumber)
+            gesture = self.gestureData[:,:,:,gestureNumber]
+            self.Draw_Gesture(gesture)
 
     def Draw_Gestures(self):
         while(True):

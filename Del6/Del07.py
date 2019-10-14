@@ -10,6 +10,10 @@ from pygameWindow import PYGAME_WINDOW
 sys.path.insert(0, "../..")
 import Leap
 
+#program globals
+programState = 0
+timeCentered = 0
+
 #drawing globals
 pygameWindow = PYGAME_WINDOW()
 controller = Leap.Controller()
@@ -101,12 +105,32 @@ def Handle_Frame(frame):
     for finger in fingers:
         Handle_Finger(finger)
 
+def isHandCentered(frame):
 
-while True:
-    pygameWindow.Prepare()
+    baseMiddleFinger = frame.hands[0].fingers[2].bone(1).prev_joint
+    x, y = baseMiddleFinger[0], baseMiddleFinger[2]
 
-    frame = controller.frame()
-    if (len(frame.hands) > 0):
+    direction = "centered"
+    if x > 50:
+        direction = "left"
+    if x < -50:
+        direction = "right"
+    if y > 50:
+        direction = "up"
+    if y < -50:
+        direction = "down"
+
+    return direction
+
+def HandleState2():
+    global k, programState
+
+    if (len(frame.hands) == 0):
+        programState = 0
+    elif (isHandCentered(frame) != "centered"):
+        programState = 1
+    else:
+
         k = 0
         Handle_Frame(frame)
 
@@ -114,9 +138,50 @@ while True:
         # testData = CenterData(testData)
         # predictedClass = clf.Predict(testData)
         # print(predictedClass)
+
+def HandleState1():
+    global k, programState, timeCentered
+
+    if (len(frame.hands) == 0):
+        programState = 0
+    elif (isHandCentered(frame) == "centered" and timeCentered >= 10):
+        programState = 2
     else:
-        # print("no hand")
+        timeCentered += 1
+        k = 0
+        Handle_Frame(frame)
+
+        # get where hand is in relation to center
+        direction = isHandCentered(frame)
+        pygameWindow.drawCenterHand(direction)
+
+        if direction != "centered":
+            timeCentered = 0
+
+        #Classify stuff:
+        # testData = CenterData(testData)
+        # predictedClass = clf.Predict(testData)
+        # print(predictedClass)
+
+def HandleState0():
+    global programState
+
+    if (len(frame.hands) > 0):
+        programState = 1
+    else:
         pygameWindow.drawHelpfulAnimation()
+
+while True:
+    pygameWindow.Prepare()
+    frame = controller.frame()
+
+    # handle state
+    if programState == 0:
+        HandleState0()
+    elif programState == 1:
+        HandleState1()
+    elif programState == 2:
+        HandleState2()
 
 
     pygameWindow.Reveal()

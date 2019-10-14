@@ -34,3 +34,17 @@ class PYGAME_WINDOW:
         img = pygame.transform.scale(img, (width, height))
 
         self.screen.blit(img, (x,y))
+
+    def drawCenterHand(self, direction):
+        filename = direction + ".png"
+
+        x = constants.pygameWindowWidth / 2
+        y = 0
+
+        width = constants.pygameWindowWidth / 2
+        height = constants.pygameWindowDepth / 2
+
+        img = pygame.image.load(os.path.join('img', filename))
+        img = pygame.transform.scale(img, (width, height))
+
+        self.screen.blit(img, (x,y))

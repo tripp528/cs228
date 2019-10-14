@@ -37,7 +37,7 @@ def scaleValue(val, min, max, windowMin, windowMax):
         distanceFromMinPercent = float(distanceFromMin) / float(fullWidth)
         # print("distanceFromMinPercent: ", distanceFromMinPercent)
 
-        windowWidth = (windowMax - windowMin)/2 ## Makes it draw in upper left quadrant 
+        windowWidth = (windowMax - windowMin)/2 ## Makes it draw in upper left quadrant
         distanceFromWindowMin = distanceFromMinPercent * windowWidth
         return int(distanceFromWindowMin)
 
@@ -101,6 +101,7 @@ def Handle_Frame(frame):
     for finger in fingers:
         Handle_Finger(finger)
 
+
 while True:
     pygameWindow.Prepare()
 
@@ -115,7 +116,7 @@ while True:
         # print(predictedClass)
     else:
         # print("no hand")
-        pass
+        pygameWindow.drawHelpfulAnimation()
 
 
     pygameWindow.Reveal()

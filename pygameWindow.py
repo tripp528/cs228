@@ -1,5 +1,6 @@
 import pygame
 import constants
+import os
 
 class PYGAME_WINDOW:
     def __init__(self):
@@ -21,3 +22,15 @@ class PYGAME_WINDOW:
     def Draw_Black_Line(self,base_xVal,base_yVal,tip_xVal,tip_yVal, thickness):
         # print(base_xVal,base_yVal,tip_xVal,tip_yVal)
         pygame.draw.line(self.screen, (0,0,0), (base_xVal,base_yVal), (tip_xVal,tip_yVal), thickness)
+
+    def drawHelpfulAnimation(self):
+        x = constants.pygameWindowWidth / 2
+        y = 0
+
+        width = constants.pygameWindowWidth / 2
+        height = constants.pygameWindowDepth / 2
+
+        img = pygame.image.load(os.path.join('img', 'wifi.jpeg'))
+        img = pygame.transform.scale(img, (width, height))
+
+        self.screen.blit(img, (x,y))

@@ -2,6 +2,7 @@ import sys
 import random
 import pickle
 import numpy as np
+import random
 
 #local imports
 sys.path.insert(0, "..")
@@ -13,6 +14,10 @@ import Leap
 #program globals
 programState = 0
 timeCentered = 0
+numberGoal = 1
+items = [1,7]
+correctSignCount = 0
+successDisplayTime = 0
 
 #drawing globals
 pygameWindow = PYGAME_WINDOW()
@@ -122,8 +127,29 @@ def isHandCentered(frame):
 
     return direction
 
+def HandleState3():
+    global successDisplayTime, programState, items, numberGoal
+    print(successDisplayTime)
+
+    if successDisplayTime < 10:
+        successDisplayTime += 1
+        pygameWindow.displaySuccess()
+
+    else:
+        numberGoal = random.sample(items,1)[0]
+        print("numberGoal:", numberGoal)
+        successDisplayTime = 0
+
+        if (len(frame.hands) == 0):
+            programState = 0
+        elif (isHandCentered(frame) != "centered"):
+            programState = 1
+        else:
+            programState = 2
+
+
 def HandleState2():
-    global k, programState
+    global k, programState, correctSignCount, testData, numberGoal, successDisplayTime
 
     if (len(frame.hands) == 0):
         programState = 0
@@ -132,12 +158,20 @@ def HandleState2():
     else:
 
         k = 0
+        pygameWindow.drawNumber(numberGoal)
         Handle_Frame(frame)
 
         #Classify stuff:
-        # testData = CenterData(testData)
-        # predictedClass = clf.Predict(testData)
-        # print(predictedClass)
+        testData = CenterData(testData)
+        predictedClass = clf.Predict(testData)
+
+        if predictedClass == numberGoal:
+            correctSignCount += 1
+        else:
+            correctSignCount = 0
+
+        if correctSignCount >= 10:
+            programState = 3
 
 def HandleState1():
     global k, programState, timeCentered
@@ -158,11 +192,6 @@ def HandleState1():
         if direction != "centered":
             timeCentered = 0
 
-        #Classify stuff:
-        # testData = CenterData(testData)
-        # predictedClass = clf.Predict(testData)
-        # print(predictedClass)
-
 def HandleState0():
     global programState
 
@@ -182,6 +211,8 @@ while True:
         HandleState1()
     elif programState == 2:
         HandleState2()
+    elif programState == 3:
+        HandleState3()
 
 
     pygameWindow.Reveal()

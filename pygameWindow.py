@@ -48,3 +48,47 @@ class PYGAME_WINDOW:
         img = pygame.transform.scale(img, (width, height))
 
         self.screen.blit(img, (x,y))
+
+    def drawNumber(self, number):
+        filename = str(number) + ".png"
+
+        x = constants.pygameWindowWidth / 2
+        y = 0
+
+        width = constants.pygameWindowWidth / 2
+        height = constants.pygameWindowDepth / 2
+
+        img = pygame.image.load(os.path.join('img', filename))
+        img = pygame.transform.scale(img, (width, height))
+
+        self.screen.blit(img, (x,y))
+
+        self.drawGestureForNumber(number)
+
+    def drawGestureForNumber(self, number):
+        filename = str(number) + "_ASL" + ".png"
+
+        x = constants.pygameWindowWidth / 2
+        y = constants.pygameWindowDepth / 2
+
+        width = constants.pygameWindowWidth / 2
+        height = constants.pygameWindowDepth / 2
+
+        img = pygame.image.load(os.path.join('img', filename))
+        img = pygame.transform.scale(img, (width, height))
+
+        self.screen.blit(img, (x,y))
+
+    def displaySuccess(self):
+        filename = "success.png"
+
+        x = constants.pygameWindowWidth / 2
+        y = 0
+
+        width = constants.pygameWindowWidth / 2
+        height = constants.pygameWindowDepth / 2
+
+        img = pygame.image.load(os.path.join('img', filename))
+        img = pygame.transform.scale(img, (width, height))
+
+        self.screen.blit(img, (x,y))

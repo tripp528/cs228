@@ -68,7 +68,7 @@ class READER:
         for gestureNumber in range(100):
             # if(gestureNumber % 10 == 0):
             print(gestureNumber)
-            gesture = self.gestureData[:,:,:,gestureNumber]
+            gesture = self.gestureData[:,:,:,gestureNumber] # finger, bone, xyzbasetip, gesturenumber
             self.Draw_Gesture(gesture)
 
     def Draw_Gestures(self):

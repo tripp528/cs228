@@ -8,6 +8,7 @@ import random
 sys.path.insert(0, "..")
 import constants
 from pygameWindow import PYGAME_WINDOW
+from Dict import DataBase
 sys.path.insert(0, "../..")
 import Leap
 

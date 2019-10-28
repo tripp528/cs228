@@ -3,6 +3,8 @@ import numpy as np
 
 from knn import KNN
 knn = KNN()
+samplesPerSet = 2000
+numSets = 2
 
 pickle_in_train2 = open("userData/train2.p","rb")
 train2 = pickle.load(pickle_in_train2)
@@ -20,37 +22,45 @@ pickle_in_test3 = open("userData/test3.p","rb")
 test3 = pickle.load(pickle_in_test3)
 pickle_in_test3.close()
 
+def flipData(set):
+    flippedSet = set.copy()
+    for i in range(set.shape[3]):
+        # print i
+        flippedSet[:,:,0,i] = -set[:,:,0,i] # finger, bone, xyzbasetip, gesturenumber
+        flippedSet[:,:,3,i] = -set[:,:,3,i] # finger, bone, xyzbasetip, gesturenumber
+
+    return np.concatenate((flippedSet,set),axis=3)
 
 def CenterData(set):
     for i in range(6):
         set[:,:,i,:] = set[:,:,i,:] - set[:,:,i,:].mean()
     return set
 
-train2 = CenterData(train2)
-train3 = CenterData(train3)
-test2 = CenterData(test2)
-test3 = CenterData(test3)
+train2 = flipData(CenterData(train2))
+train3 = flipData(CenterData(train3))
+test2 = flipData(CenterData(test2))
+test3 = flipData(CenterData(test3))
 
 # Draw them
 from Reader import READER
 reader = READER()
 print("train2")
-for gestureNumber in range(1000):
+for gestureNumber in range(samplesPerSet):
     if(gestureNumber % 100 == 0):
         gesture = train2[:,:,:,gestureNumber]
         reader.Draw_Gesture(gesture)
 print("test2")
-for gestureNumber in range(1000):
+for gestureNumber in range(samplesPerSet):
     if(gestureNumber % 100 == 0):
         gesture = test2[:,:,:,gestureNumber]
         reader.Draw_Gesture(gesture)
 print("train3")
-for gestureNumber in range(1000):
+for gestureNumber in range(samplesPerSet):
     if(gestureNumber % 100 == 0):
         gesture = train3[:,:,:,gestureNumber]
         reader.Draw_Gesture(gesture)
 print("test3")
-for gestureNumber in range(1000):
+for gestureNumber in range(samplesPerSet):
     if(gestureNumber % 100 == 0):
         gesture = test3[:,:,:,gestureNumber]
         reader.Draw_Gesture(gesture)
@@ -73,17 +83,17 @@ test2 = ReduceData(test2)
 test3 = ReduceData(test3)
 
 def ReshapeData(set1,set2):
-    X = np.zeros((2000,5*2*3), dtype='f')
-    Y = np.zeros((2000), dtype='f')
-    for row in range(0,1000):
+    X = np.zeros((samplesPerSet * numSets,5*2*3), dtype='f')
+    Y = np.zeros((samplesPerSet * numSets), dtype='f')
+    for row in range(0,samplesPerSet):
         Y[row] = 2
-        Y[row+1000] = 3
+        Y[row+samplesPerSet*1] = 3
         col = 0
         for finger in range(0,5):
             for bone in range(0,2):
                 for coordinate in range(0,3):
                     X[row,col] = set1[finger,bone,coordinate,row]
-                    X[row+1000,col] = set2[finger,bone,coordinate,row]
+                    X[row+samplesPerSet,col] = set2[finger,bone,coordinate,row]
                     col += 1
     return X,Y
 
@@ -101,11 +111,11 @@ knn.Fit(trainX,trainY)
 # print(testY[998])
 
 correctCount = 0
-for row in range(0,2000): # 2000
+for row in range(0,samplesPerSet*numSets): # 2000
     actualClass = testY[row]
     prediction = knn.Predict(testX[row,:])
     print(row, actualClass, prediction)
     if actualClass == prediction:
         correctCount += 1
-print "Percent correct: ", (float(correctCount)/2000) * 100, "%"
+print "Percent correct: ", (float(correctCount)/samplesPerSet*numSets) * 100, "%"
 print correctCount, "correct"

@@ -92,3 +92,29 @@ class PYGAME_WINDOW:
         img = pygame.transform.scale(img, (width, height))
 
         self.screen.blit(img, (x,y))
+
+    def displayAttemptCount(self,db):
+        filename = "success.png"
+
+        x = 0
+        y = constants.pygameWindowDepth / 2
+
+        width = constants.pygameWindowWidth / 2
+        height = constants.pygameWindowDepth / 2
+
+        fontsize = 30 # TODO have these values scale with screen size
+        font = pygame.font.Font('freesansbold.ttf', fontsize)
+        leftMargin = 20
+
+        #display header
+        text = font.render("Digit attempt count:", True, (0, 0, 0), (255, 255, 255))
+        y += fontsize
+        self.screen.blit(text, (x + leftMargin,y))
+
+        # display list
+        digitCounts =  db.getDigitCounts()
+        for digit in digitCounts:
+            text = font.render(str(digit) + ": " + str(digitCounts[digit]), \
+                                True, (0, 0, 0), (255, 255, 255))
+            y += fontsize
+            self.screen.blit(text, (x + leftMargin,y))

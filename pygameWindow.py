@@ -63,7 +63,7 @@ class PYGAME_WINDOW:
 
         self.screen.blit(img, (x,y))
 
-        self.drawGestureForNumber(number)
+        # self.drawGestureForNumber(number)
 
     def drawGestureForNumber(self, number):
         filename = str(number) + "_ASL" + ".png"
@@ -93,8 +93,21 @@ class PYGAME_WINDOW:
 
         self.screen.blit(img, (x,y))
 
+    def displayFail(self):
+        filename = "fail.png"
+
+        x = constants.pygameWindowWidth / 2
+        y = 0
+
+        width = constants.pygameWindowWidth / 2
+        height = constants.pygameWindowDepth / 2
+
+        img = pygame.image.load(os.path.join('img', filename))
+        img = pygame.transform.scale(img, (width, height))
+
+        self.screen.blit(img, (x,y))
+
     def displayAttemptCount(self,db):
-        filename = "success.png"
 
         x = 0
         y = constants.pygameWindowDepth / 2
@@ -107,12 +120,12 @@ class PYGAME_WINDOW:
         leftMargin = 20
 
         #display header
-        text = font.render("Digit attempt count:", True, (0, 0, 0), (255, 255, 255))
+        text = font.render("Digit scores:", True, (0, 0, 0), (255, 255, 255))
         y += fontsize
         self.screen.blit(text, (x + leftMargin,y))
 
         # display list
-        digitCounts =  db.getDigitCounts()
+        digitCounts =  db.getStats(attribute="score")
         for digit in digitCounts:
             text = font.render(str(digit) + ": " + str(digitCounts[digit]), \
                                 True, (0, 0, 0), (255, 255, 255))

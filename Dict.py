@@ -18,30 +18,58 @@ class DataBase:
             self.database[userName]['logins'] = 1
             print("welcome " + userName + '.')
 
+            self.database[self.currentUser]["activeDigits"] = {1,}
+            
+
+
         self.save()
 
-    def addData(self,key,value):
-        self.database[self.currentUser][key] = value
-        self.save()
+    def incrementDigitAttribute(self,digit,attribute,amount):
+        self.database[self.currentUser]["activeDigits"].add(digit)
 
-    def incrementDigitCount(self,digit):
-        key = "digit"+str(digit)+"attempted"
+        if (digit not in self.database[self.currentUser]):
+            self.database[self.currentUser][digit] = {}
 
-        if key in self.database[self.currentUser]:
-            value = self.database[self.currentUser][key] + 1
+        if attribute in self.database[self.currentUser][digit]:
+            self.database[self.currentUser][digit][attribute] += amount
         else:
-            value = 1
+            self.database[self.currentUser][digit][attribute] = amount
 
-        self.addData(key,value)
 
-    def getDigitCounts(self):
+    def digitAttempted(self,digit,correct):
+        self.incrementDigitAttribute(digit,"attempted",1)
+
+        if (correct):
+            self.incrementDigitAttribute(digit,"correct",1)
+            self.incrementDigitAttribute(digit,"incorrect",0)
+            self.incrementDigitAttribute(digit,"score",0)
+
+            if (self.getStats(attribute="score")[digit] < 5):
+                self.incrementDigitAttribute(digit,"score",1) # out of past three
+
+        else:
+            self.incrementDigitAttribute(digit,"incorrect",1)
+            self.incrementDigitAttribute(digit,"correct",0)
+            self.incrementDigitAttribute(digit,"score",0)
+
+            if (self.getStats(attribute="score")[digit] > 0):
+                self.incrementDigitAttribute(digit,"score",-1) # out of past three
+
+        self.save()
+
+    def getStats(self,attribute=None):
         digits = {}
         for digit in range(10):
-            key = "digit"+str(digit)+"attempted"
-            if key in self.database[self.currentUser]:
-                digits[digit] = self.database[self.currentUser][key]
-                
-        return digits
+            if digit in self.database[self.currentUser]:
+                if (attribute == None):
+                    digits[digit] = self.database[self.currentUser][digit]
+                elif (attribute in self.database[self.currentUser][digit]):
+                    digits[digit] = self.database[self.currentUser][digit][attribute]
+
+        return digits # returns dictionary of dictionaries with different attributes
+
+    def getActiveDigits(self):
+        return self.database[self.currentUser]["activeDigits"]
 
     def reset(self):
         self.database = {}

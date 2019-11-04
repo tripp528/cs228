@@ -19,12 +19,20 @@ db.login()
 #program globals
 programState = 0
 timeCentered = 0
-items = [0,1,2,3,4,5,6,7,8,9]
-numberGoal = 1
+totalItems = [1,2,3,4,5,6,7,8,9,0]
+
+if ( len(db.getActiveDigits()) > 0 ):
+    scaffoldedItems = db.getActiveDigits()
+else :
+    scaffoldedItems = {1,}
+
+numberGoal = random.sample(scaffoldedItems,1)[0]
 signDisplayTime = 0
 maxSignDisplayTime = 30
 correctSignCount = 0
 successDisplayTime = 0
+failDisplayTime = 0
+
 
 #drawing globals
 pygameWindow = PYGAME_WINDOW()
@@ -136,7 +144,7 @@ def isHandCentered(frame):
     return direction
 
 def HandleState3(): # hand is centered and the digit is correct for 10 frames
-    global successDisplayTime, programState, items, numberGoal
+    global successDisplayTime, programState, numberGoal, scaffoldedItems, totalItems
     print(successDisplayTime)
 
     if successDisplayTime < 10:
@@ -145,8 +153,21 @@ def HandleState3(): # hand is centered and the digit is correct for 10 frames
 
     else:
         # increment in DataBase before numbergoal is switched, reset signDisplayTime
-        db.incrementDigitCount(numberGoal)
-        numberGoal = random.sample(items,1)[0]
+        db.digitAttempted(numberGoal,correct=True)
+
+        # add a new number if 3 out of the last 5 attempts were correct
+        currentNumbersMastered = True
+        for digit in scaffoldedItems:
+            if (db.getStats(attribute="score")[digit] < 3):
+                currentNumbersMastered = False
+
+        if (currentNumbersMastered):
+            numberGoal = totalItems[len(scaffoldedItems)]
+            scaffoldedItems.add(totalItems[len(scaffoldedItems)])
+            print(scaffoldedItems)
+        else:
+            numberGoal = random.sample(scaffoldedItems,1)[0]
+
         print("numberGoal:", numberGoal)
 
         successDisplayTime = 0
@@ -159,8 +180,8 @@ def HandleState3(): # hand is centered and the digit is correct for 10 frames
             programState = 2
 
 
-def HandleState2(): # hand is centered, try to sign
-    global k, programState, correctSignCount, testData, numberGoal, successDisplayTime,signDisplayTime,maxSignDisplayTime
+def HandleState2(): # hand is centered, trying to sign
+    global k, programState, correctSignCount, testData, numberGoal, failDisplayTime,signDisplayTime,maxSignDisplayTime
 
     if (len(frame.hands) == 0):
         programState = 0
@@ -170,31 +191,67 @@ def HandleState2(): # hand is centered, try to sign
 
         k = 0
 
-        # change the number goal ever so often  whether or not they get it right
+        # determine how long to show the sign instruction on screen
+        if (numberGoal in db.getStats()):
+            if ("score" in db.getStats()[numberGoal]):
+                timeToShowSign = maxSignDisplayTime - 3*db.getStats()[numberGoal]["score"]
+            else:
+                timeToShowSign = maxSignDisplayTime
+        else:
+            timeToShowSign = maxSignDisplayTime
+        if signDisplayTime < timeToShowSign:
+            pygameWindow.drawGestureForNumber(numberGoal)
+
+        # if the time isn't up for this attempt, increment and get user to try to sign
         if signDisplayTime < maxSignDisplayTime:
             signDisplayTime += 1
+
+            pygameWindow.drawNumber(numberGoal)
+            Handle_Frame(frame)
+
+            #Classify stuff:
+            userAttempt = CenterData(testData)
+            predictedClass = clf.Predict(userAttempt)
+
+            if predictedClass == numberGoal:
+                correctSignCount += 1
+            else:
+                correctSignCount = 0
+
+            # figure out how long the user needs to  be right for it to count
+            if (numberGoal in db.getStats()):
+                if ("score" in db.getStats()[numberGoal]):
+                    # needs to be smaller than maxSignDisplayTime
+                    timeForSignToCount = maxSignDisplayTime/3 - 1.5*db.getStats()[numberGoal]["score"]
+                else:
+                    timeForSignToCount = maxSignDisplayTime/3
+            else:
+                timeForSignToCount = maxSignDisplayTime/3
+
+            # show the sign until its supposed to dissapear.
+            if correctSignCount >= timeForSignToCount:
+                correctSignCount = 0
+                signDisplayTime = 0
+                programState = 3
+
+        # once time is up, change scores, display failed, then switch numbers
         else:
-            # increment the count of how many times this user has seen this digit
-            db.incrementDigitCount(numberGoal)
-            numberGoal = random.sample(items,1)[0]
-            print(numberGoal)
-            signDisplayTime = 0
+            # show fail message
+            if failDisplayTime < 10:
+                failDisplayTime += 1
+                pygameWindow.displayFail()
 
-        pygameWindow.drawNumber(numberGoal)
-        Handle_Frame(frame)
+            # once fail message is over
+            else:
+                signDisplayTime = 0
+                failDisplayTime = 0
 
-        #Classify stuff:
-        userAttempt = CenterData(testData)
-        predictedClass = clf.Predict(userAttempt)
+                # increment the count of how many times this user has seen this digit
+                db.digitAttempted(numberGoal,correct=False)
+                numberGoal = random.sample(scaffoldedItems,1)[0]
+                print(numberGoal)
 
-        if predictedClass == numberGoal:
-            correctSignCount += 1
-        else:
-            correctSignCount = 0
 
-        if correctSignCount >= 10:
-            signDisplayTime = 0
-            programState = 3
 
 def HandleState1(): # hand is in the frame but not consistantly centered
     global k, programState, timeCentered

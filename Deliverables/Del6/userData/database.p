@@ -1,0 +1,17 @@
+(dp0
+S'john'
+p1
+(dp2
+S'logins'
+p3
+I1
+sS'digit7attempted'
+p4
+I1
+ssS'tripp'
+p5
+(dp6
+S'logins'
+p7
+I2
+ss.
